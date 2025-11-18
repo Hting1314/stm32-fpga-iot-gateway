@@ -1,0 +1,19 @@
+# Keil
+*.uvguix.*
+*.uvoptx
+*.bak
+Objects/
+Listings/
+
+# CubeMX 生成
+Debug/
+Release/
+build/
+
+# 其他临时文件
+*.o
+*.log
+*.bin
+*.elf
+*.map
+
