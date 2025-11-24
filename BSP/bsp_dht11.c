@@ -52,7 +52,7 @@ void DHT11_Init(void)
 }
 
 /* 核心读取函数：严格按 DHT11 协议时序 */
-DHT11_Status_t DHT11_Read(DHT11_Data_t *data)
+DHT11_Status_t DHT11_Read(DHT11_Frame_t *data)
 {
     uint8_t raw[5] = {0};
     uint8_t i, j;

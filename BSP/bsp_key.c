@@ -2,54 +2,66 @@
 //#include "bsp_tick.h"
 //#include "bsp_led.h"
 //#include "bsp_usart.h"   
+#include "gpio.h"
 #include <stdio.h>
 #include "stm32f4xx_hal.h"
 
+
+volatile uint8_t g_key_int_flag = 0;
 //extern volatile uint32_t g_tick10ms;       //引入定时器提供的 g_tick10ms
-uint8_t g_led_mode = 0;
+//uint8_t g_led_mode = 0;
 
 //volatile uint8_t g_key_state = 0;					
 //volatile uint8_t g_key_stable = 0;
 //volatile uint32_t g_key_debounce_timer = 0;     //按键消抖计时器 ，单位：10ms
 //volatile uint8_t g_key_released = 1;        // 按键松开标志，用于避免重复切换模式
 
-static volatile uint32_t key_last_ms = 0;
-static volatile uint32_t key_event = 0;
+//static volatile uint32_t key_last_ms = 0;
+//static volatile uint32_t key_event = 0;
 
 void KEY_Init(void)
 {
 //	g_key_state = 0;
 //	g_key_stable = 0;
 //	g_key_debounce_timer = 0;
-	key_event = 0;
-	key_last_ms = 0;
+//	key_event = 0;
+//	key_last_ms = 0;
 	
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+void KEY_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    if (GPIO_Pin == GPIO_PIN_6)
-    {
-        uint32_t now = HAL_GetTick();
-        // 200ms 简单消抖：防止一按多触发
-        if (now - key_last_ms > 200U)
-        {
-            key_event  = 1;
-            key_last_ms = now;
-        }
-    }
+	if (GPIO_Pin == KEY0_PIN)
+	{
+		g_key_int_flag = 1;
+		printf("[KEY] EXTI callback, set flag=1\r\n");   //调试用
+	}
 }
 
+//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+//{
+//    if (GPIO_Pin == GPIO_PIN_6)
+//    {
+//        uint32_t now = HAL_GetTick();
+//        // 200ms 简单消抖：防止一按多触发
+//        if (now - key_last_ms > 200U)
+//        {
+//            key_event  = 1;
+//            key_last_ms = now;
+//        }
+//    }
+//}
+
 /* 在主循环里调用：把一次按键事件转换为模式切换（可打印） */
-void KEY_ProcessEvent(void)
-{
-    if (key_event)
-    {
-        key_event = 0;
-        g_led_mode = (g_led_mode + 1) % 3;  // 0:灭 1:亮 2:闪
-        printf("[KEY] pressed -> g_led_mode=%d\r\n", g_led_mode);
-    }
-}
+//void KEY_ProcessEvent(void)
+//{
+//    if (key_event)
+//    {
+//        key_event = 0;
+//        g_led_mode = (g_led_mode + 1) % 3;  // 0:灭 1:亮 2:闪
+//        printf("[KEY] pressed -> g_led_mode=%d\r\n", g_led_mode);
+//    }
+//}
 
 //void KEY_Debounce_Check(void)
 //{

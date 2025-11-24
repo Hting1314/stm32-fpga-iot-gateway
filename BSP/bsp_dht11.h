@@ -9,7 +9,7 @@ typedef struct
 	uint8_t humi_dec;
 	uint8_t temp_int;
 	uint8_t temp_dec;
-}DHT11_Data_t;
+}DHT11_Frame_t;
 
 typedef enum
 {
@@ -19,6 +19,6 @@ typedef enum
 }DHT11_Status_t;
 
 void DHT11_Init(void);
-DHT11_Status_t DHT11_Read(DHT11_Data_t *data);
+DHT11_Status_t DHT11_Read(DHT11_Frame_t *data);
 
 #endif

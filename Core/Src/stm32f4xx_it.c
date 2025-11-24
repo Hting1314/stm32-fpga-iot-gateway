@@ -23,6 +23,8 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "bsp_key.h"
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -181,7 +183,8 @@ void EXTI9_5_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM3_IRQn 0 */
-
+	//打印调试信息
+	printf("[TIM3] IRQ triggered\r\n");               
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
@@ -204,6 +207,9 @@ void TIM6_DAC_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	KEY_EXTI_Callback(GPIO_Pin);
+}
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

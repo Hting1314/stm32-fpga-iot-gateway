@@ -3,7 +3,9 @@
 void DWT_Delay_Init(void)
 {
     /* 使能 DWT 外设计数器 (CYCCNT) */
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+     if (!(CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk)) {
+        CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;  // 启用 TRC（跟踪和数据监视器）
+    }
     DWT->CYCCNT = 0;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }

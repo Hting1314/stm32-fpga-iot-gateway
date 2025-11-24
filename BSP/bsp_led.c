@@ -41,22 +41,22 @@ void LED_Toggle(void)
 	
 }
 
-void LED_Run(void)
-{
-    // 根据当前模式切换 LED 行为
-    switch (g_led_mode) {
-        case 0:
-            LED_Off();  // LED 常灭
-            break;
-        case 1:
-            LED_On();   // LED 常亮
-            break;
-        case 2:
-            LED_Toggle();  // LED 闪烁
-            HAL_Delay(500); // 延时控制闪烁频率
-            break;
-        default:
-            LED_Off();
-            break;
-    }
-}
+//void LED_Run(void)
+//{
+//    // 根据当前模式切换 LED 行为
+//    switch (g_led_mode) {
+//        case 0:
+//            LED_Off();  // LED 常灭
+//            break;
+//        case 1:
+//            LED_On();   // LED 常亮
+//            break;
+//        case 2:
+//            LED_Toggle();  // LED 闪烁
+//            HAL_Delay(500); // 延时控制闪烁频率
+//            break;
+//        default:
+//            LED_Off();
+//            break;
+//    }
+//}

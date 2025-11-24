@@ -1,19 +1,36 @@
-# Keil
+# --- Keil MDK 核心忽略项 ---
+# 忽略用户特定的界面布局配置 (非常重要，防止冲突)
 *.uvguix.*
 *.uvoptx
+
+# 忽略备份和中间文件
 *.bak
+*.dep
+*.d
+*.o
+*.crf
+*.htm
+*.lnp
+*.sct
+*.map
+
+# 忽略 Keil 生成的文件夹
 Objects/
 Listings/
+DebugConfig/
+RTE/
 
-# CubeMX 生成
+# 忽略 J-Link 生成的日志
+JLinkLog.txt
+
+# --- STM32CubeMX / 编译输出 ---
 Debug/
 Release/
 build/
+MDK-ARM/Debug/
+MDK-ARM/RTE/
 
-# 其他临时文件
-*.o
-*.log
+# --- 最终生成的可执行文件 (看你需不需要，通常不需要提交) ---
 *.bin
 *.elf
-*.map
-
+*.hex

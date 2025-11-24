@@ -1,4 +1,5 @@
 #include "bsp_tick.h"
+#include "stm32f4xx_hal.h"
 
 extern TIM_HandleTypeDef htim3;            // 定时器句柄
 volatile uint32_t g_tick10ms = 0;        //定时器每10ms 增加的计时数
@@ -15,7 +16,7 @@ void TICK_Init(void)
 uint32_t TICK_Get10ms(void)            //封装为 TICK_Get10ms——供外部调用
 {
 	
-	return g_tick10ms;
+	return HAL_GetTick()/10;         
 	
 }
 
@@ -27,14 +28,17 @@ uint32_t TICK_Get10ms(void)            //封装为 TICK_Get10ms——供外部调用
 //	}
 //}
 
-//   定时器中断回调函数： 每次TIM3 更新时， 计数加1
-//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-//{
-//	
-//	if (htim->Instance == TIM3)
-//	{
-//		
-//		g_tick10ms++;             //每 10ms 更新一次计数器
-//   
-//	}
-//}
+/*   定时器中断回调函数： 每次TIM3 更新时， 计数加1   */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	 if (htim->Instance == TIM6)
+    {
+        HAL_IncTick();
+//        printf("[TIM6] Tick Incremented\r\n");  // 用来调试
+    }
+//    else if (htim->Instance == TIM3)
+//    {
+//        g_tick10ms++;
+//        printf("[TIM3] g_tick10ms = %lu\r\n", g_tick10ms);  // 用来调试
+//    }
+}
