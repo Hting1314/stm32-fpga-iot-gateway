@@ -59,6 +59,9 @@ const osThreadAttr_t printTask_attributes = {
 	.stack_size = 128 * 4
 };
 
+/*	新增队列句柄		*/
+osMessageQueueId_t queueHandle;
+
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 
@@ -98,6 +101,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+	queueHandle = osMessageQueueNew(5, sizeof(uint32_t), NULL);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -131,16 +135,19 @@ void MX_FREERTOS_Init(void) {
 void StartLedTask(void *argument)              //LED Task的实现
 {
 	
-	uint32_t count = 0;
+	uint32_t recvValue = 0;
 	
 	for(;;)
 	{
-		HAL_GPIO_TogglePin(GPIOG, GPIO_PIN_13);
+		/* --- 阻塞式接收队列消息 --- */
+		if (osMessageQueueGet(queueHandle, &recvValue, NULL, osWaitForever) == osOK)
+		{
+			// 每次收到一条消息，执行一次闪烁
+				HAL_GPIO_TogglePin(GPIOG, GPIO_PIN_13);
 		
-		uart_printf("[LED] toggle %lu, tick=%lu\r\n",
-									count++, HAL_GetTick());
+				uart_printf("[LED] received msg=%lu\r\n",recvValue);
+		}	
 		
-		vTaskDelay(pdMS_TO_TICKS(500));           //延时500ms
 	}
 }
 
@@ -150,8 +157,12 @@ void StartPrintTask(void *argument)
 	
 	for(;;)
 	{
-		uart_printf("[PRINT] heartbeat=%lu, tick=%lu\r\n",
-									heartbeat++, HAL_GetTick());
+		uart_printf("[PRINT] heartbeat=%lu\r\n",heartbeat);
+		
+		/* ---向队列发送数据--- */
+		osMessageQueuePut(queueHandle, &heartbeat, 0 ,0 );
+		
+		heartbeat ++;
 		
 		vTaskDelay(pdMS_TO_TICKS(1000));        		//延时1s
 	}
