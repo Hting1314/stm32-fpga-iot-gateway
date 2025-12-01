@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "bsp_uart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,15 +51,18 @@ const osThreadAttr_t ledTask_attributes = {
 	.priority = (osPriority_t) osPriorityNormal,
 	.stack_size = 128*4
 };
+
+
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void StartLedTask(void *argument);              //声明LED任务
+
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void *argument);
+//void StartDefaultTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -117,12 +120,22 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE BEGIN Application */
 void StartLedTask(void *argument)              //LED Task的实现
 {
+	
+	uint32_t count = 0;
+	
 	for(;;)
 	{
 		HAL_GPIO_TogglePin(GPIOG, GPIO_PIN_13);
+		
+		uart_printf("[LED] toggle %lu, tick=%lu\r\n",
+									count++, HAL_GetTick());
+		
 		vTaskDelay(pdMS_TO_TICKS(500));           //延时500ms
 	}
 }
+
+
+	
 
 /* USER CODE END Application */
 
