@@ -10,7 +10,6 @@ extern osMessageQueueId_t queueKeyHandle;   // PF6 EXTI → key 事件
 extern osMessageQueueId_t queueCmdHandle;   // 下发给 LED 的命令队列（CmdType）
 
 
-
 /* 约定一个简单的按键事件类型，目前只有“短按” */
 #define KEY_EVT_SHORT_PRESS   1u
 

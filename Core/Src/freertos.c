@@ -68,6 +68,9 @@ osThreadId_t CmdTaskHandle;
 osThreadId_t SensorTaskHandle;
 osThreadId_t KeyTaskHandle;
 
+// 锁句柄
+osMutexId_t uartMutexHandle;
+
 
 
 //队列句柄
@@ -102,7 +105,7 @@ const osThreadAttr_t PrintTask_attributes = {
 /* CmdTask */
 const osThreadAttr_t CmdTask_attributes = {
   .name       = "CmdTask",
-  .stack_size = 256 * 4,                      // 命令解析稍微给大一点栈
+  .stack_size = 512 * 4,                      // 命令解析稍微给大一点栈
   .priority   = (osPriority_t) osPriorityNormal,
 };
 
@@ -136,6 +139,11 @@ const osMessageQueueAttr_t queueCmd_attributes = {
 /* 按键事件队列：uint8_t，长度 8 */
 const osMessageQueueAttr_t queueKey_attributes = {
   .name = "queueKey"
+};
+
+/* 标准互斥锁 （属性定义） */
+const osMutexAttr_t uartMutex_attributes = {
+	.name = "UartMutex"
 };
 
 
@@ -195,7 +203,10 @@ void MX_FREERTOS_Init(void) {
 	/*  按键事件队列：PF6 EXTI 回调 → KeyTask */
   queueKeyHandle = osMessageQueueNew(8, sizeof(uint8_t), &queueKey_attributes);
 	
-	
+	// 创建互斥锁
+  uartMutexHandle = osMutexNew(&uartMutex_attributes);
+		
+		
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -217,7 +228,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Sensor 任务：周期性读取 DHT11，并通过串口打印 */
   SensorTaskHandle = osThreadNew(StartSensorTask, NULL, &SensorTask_attributes);
-
+	
   /* Key 任务：从某个队列拿“模式变化” */
   KeyTaskHandle = osThreadNew(StartTask_Key, NULL, &KeyTask_attributes);
 	
