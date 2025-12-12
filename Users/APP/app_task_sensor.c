@@ -1,7 +1,10 @@
 #include "app_task_sensor.h"
 #include "cmsis_os.h"
+#include "app_types.h"
 #include "bsp_uart.h"   // uart_printf()
 #include "bsp_dht11.h"      // DHT11_Read()，后面可以 BSP 化成 bsp_dht11.h
+
+extern osMessageQueueId_t queueSensorHandle;
 
 void StartSensorTask(void *argument)
 {
@@ -12,25 +15,31 @@ void StartSensorTask(void *argument)
 
     uint8_t humi = 0;
     uint8_t temp = 0;
-    HAL_StatusTypeDef res;
+    SensorEvt_t evt;
 
-    /* 给系统和 DHT11 一点时间上电稳定 */
+    /* 上电稳定期：只做一次（DHT11 需要） */
     osDelay(2000);
+
+    LOG_INFO("[SENSOR] task start (event-driven)\r\n");
 
     for (;;)
     {
-        res = BSP_DHT11_Read(&humi, &temp);
-
-        if (res == HAL_OK)
+        /* 阻塞等待事件：软件定时器每 1s 发一次 */
+        if (osMessageQueueGet(queueSensorHandle, &evt, NULL, osWaitForever) == osOK)
         {
-            LOG_INFO("DHT11 OK:T = %d C, H = %d %%\r\n", temp, humi);
-        }
-        else
-        {
-            LOG_ERROR("DHT11 ERROR:read failed\r\n");
-        }
+            if (evt == SENSOR_EVT_READ)
+            {
+                HAL_StatusTypeDef res = BSP_DHT11_Read(&humi, &temp);
 
-        /* 遵守 DHT11 最小采样周期（>= 1s），这里用 2s 更保险 */
-        osDelay(2000);
+                if (res == HAL_OK)
+                {
+                    LOG_INFO("[SENSOR] DHT11 OK: T=%d C, H=%d %%\r\n", temp, humi);
+                }
+                else
+                {
+                    LOG_ERROR("[SENSOR] DHT11 read failed\r\n");
+                }
+            }
+        }
     }
 }

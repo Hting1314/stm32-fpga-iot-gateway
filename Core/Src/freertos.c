@@ -128,6 +128,11 @@ const osMessageQueueAttr_t queueUartByte_attributes = {
   .name = "UartByteQueue"
 };
 
+/* 5. Sensor事件队列 */
+osMessageQueueId_t queueSensorHandle;
+const osMessageQueueAttr_t queueSensor_attributes = {
+	.name = "queueSensor"
+};
 
 /* ================== 4. 互斥锁句柄 ================== */
 osMutexId_t uartMutexHandle;
@@ -146,6 +151,13 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 
+/* ================== 5. 定时器句柄+属性  ================== */
+osTimerId_t sensorTimerHandle;
+
+const osTimerAttr_t sensorTimer_attributes = {
+	.name = "sensorTimer"
+};
+
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
@@ -157,7 +169,16 @@ void StartCmdTask(void *argument);
 void StartSensorTask(void *argument);           
 void StartKeyTask(void *argument);      
 
+static void SensorTimerCallback(void *argument)
+{
+	
+	(void)argument;
 
+    SensorEvt_t evt = SENSOR_EVT_READ;
+
+    /* Timer 回调里：只发事件，不做耗时工作 */
+    (void)osMessageQueuePut(queueSensorHandle, &evt, 0, 0);
+}
 
 /* USER CODE END FunctionPrototypes */
 
@@ -191,6 +212,9 @@ void MX_FREERTOS_Init(void) {
   /* UART Byte 队列: 深度 128 (作为缓冲池，必须大), 元素类型 uint8_t */
   queueUartByteHandle = osMessageQueueNew(128, sizeof(uint8_t), &queueUartByte_attributes);
 	
+	/* Sensor 队列   */
+	queueSensorHandle = osMessageQueueNew(8, sizeof(SensorEvt_t), &queueSensor_attributes);
+	
 	
   /* USER CODE END Init */
 
@@ -204,6 +228,16 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
+	
+/* 创建软件定时器：周期 1s */
+sensorTimerHandle = osTimerNew(SensorTimerCallback, osTimerPeriodic, NULL, &sensorTimer_attributes);
+	
+/* 启动：1000ms 周期 */
+if (sensorTimerHandle != NULL)
+{
+    osTimerStart(sensorTimerHandle, 1000);
+}
+	
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -214,7 +248,6 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
 
@@ -254,21 +287,7 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
-{
-  /* USER CODE BEGIN StartDefaultTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartDefaultTask */
-}
-
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
-
-
 /* USER CODE END Application */
-
