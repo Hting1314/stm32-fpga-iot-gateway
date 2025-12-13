@@ -1,4 +1,4 @@
-# STM32 FreeRTOS Multitasking System
+# Event-Driven STM32+FreeRTOS System
 
 ##  项目简介
 本项目基于 STM32F407ZGT6 和 FreeRTOS，实现了一个高并发、高可靠的嵌入式多任务系统。
@@ -24,13 +24,79 @@
 | **CmdTask** | Normal | 解析串口指令 ("toggle" 等) | 512 Words |
 | **PrintTask** | Normal | 产生心跳数据 | 256 Words |
 
+### 4. 系统整体架构图
+```mermaid
+graph TD
+
+  %% ===== 中断层（ISR） =====
+  subgraph ISR["ISR Layer"]
+    EXTI_PF6["PF6 EXTI ISR"]
+  end
+
+  %% ===== 任务层（Tasks） =====
+  subgraph Tasks["Task Layer"]
+    PrintTask["PrintTask<br/>prio: Normal"]
+    LedTask["LedTask<br/>prio: Normal"]
+    CmdTask["CmdTask<br/>prio: Normal"]
+    KeyTask["KeyTask<br/>prio: Normal"]
+    SensorTask["SensorTask<br/>prio: BelowNormal"]
+  end
+
+  %% ===== 资源层（Queues & Hardware） =====
+  subgraph Queues["Queues"]
+    queueHeartbeat["queueHeartbeat<br/>uint32_t"]
+    queueCmd["queueCmd<br/>CmdType"]
+    queueKey["queueKey<br/>uint8_t"]
+    queueSensor["queueSensor<br/>SensorEvt_t"]
+  end
+
+  subgraph Hardware["Hardware"]
+    BSP_LED["BSP_LED<br/>LED Control"]
+    BSP_UART["BSP_UART<br/>UART Logging"]
+    BSP_DHT11["BSP_DHT11<br/>DHT11 Read"]
+  end
+
+  %% ===== 数据流连接 =====
+
+  %% ISR → Queue
+  EXTI_PF6 -- "xQueueSend<br/>KEY_EVT (uint8_t)" --> queueKey
+
+  %% Queue → Task
+  queueKey -- "xQueueGet<br/>KEY_EVT (uint8_t)" --> KeyTask
+  queueHeartbeat -- "xQueueGet<br/>heartbeat (uint32_t)" --> LedTask
+  queueCmd -- "xQueueGet<br/>CmdType" --> LedTask
+  queueCmd -- "xQueueGet<br/>CmdType" --> CmdTask
+  queueSensor -- "xQueueGet<br/>SensorEvt_t" --> SensorTask
+
+  %% Task → Hardware
+  LedTask -- "BSP_LED_Run_Toggle<br/>BSP_LED_Run_Off" --> BSP_LED
+  CmdTask -- "uart_printf" --> BSP_UART
+  KeyTask -- "BSP_LED_SetMode(mode)" --> BSP_LED
+  SensorTask -- "BSP_DHT11_Read<br/>temperature, humidity" --> BSP_DHT11
+  SensorTask -- "uart_printf" --> BSP_UART
+
+  %% 资源间的连接
+  queueCmd -.->| Give Semaphore | CmdTask
+  queueKey -.->| Give Semaphore | KeyTask
+
+  %% ===== 样式设置 =====
+  classDef isr fill:#ffcccc,stroke:#ff0000,stroke-width:2px;
+  classDef task fill:#e0f7fa,stroke:#008080,stroke-width:2px;
+  classDef queue fill:#ffffe0,stroke:#c0a000,stroke-width:2px;
+  classDef hardware fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+
+  %% 关键数据通路加粗显示
+  class queueHeartbeat,queueCmd,queueKey,queueSensor isr;
+  class KeyTask,LedTask,SensorTask,CmdTask isr;
+  ```
+
 ##  硬件环境
 - **MCU**: STM32F407ZGT6
 - **Sensor**: DHT11 Temperature & Humidity Sensor
 - **Interface**: USB-TTL ST-Link
 - **Baudrate**: 115200
 
-## 📂 目录结构
+##  目录结构
 ```text
 FreeRTOS_Demo/
 ├── Core/                   # STM32CubeMX 生成的核心与硬件初始化
